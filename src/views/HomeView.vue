@@ -136,8 +136,9 @@ const points = computed(() => {
 })
 
 const money = computed(() => {
+  // console.log(steps.value)
   return steps.value.reduce((result, current) => {
-    result += current.money * current.count
+    result += current.money
     return result
   }, 0)
 })
