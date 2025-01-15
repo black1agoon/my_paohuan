@@ -7,7 +7,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 // https://vite.dev/config/
 export default defineConfig({
   server: {
-    port: 7000, //端口号
+    port: 7010, //端口号
   },
   build: {
     assetsDir: 'static'
