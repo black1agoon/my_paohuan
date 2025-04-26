@@ -1,6 +1,6 @@
 <template>
   <div class="watu-wrapper">
-      <div  v-for="(table, index) in tabOptions" :key="table.label">
+      <div v-show="leftShow"  v-for="(table, index) in tabOptions" :key="table.label">
         <table class="table" v-if="current === index">
           <tbody>
           <tr>
@@ -36,7 +36,7 @@
         </table>
       </div>
 
-    <div>
+    <div class="center-wrap">
       <div class="button-wrap">
         <el-button class="button" type="primary" @click="save">保存</el-button>
         <el-button class="button" @click="clear">清空</el-button>
@@ -44,7 +44,9 @@
       <div class="tabs">
         <div class="tab" @click="tabClick(index)" :class="{ active: current === index }" v-for="(tab, index) in tabOptions" :key="index">{{tab.label}}</div>
       </div>
-
+      <div class="">
+        <el-button class="button_toggle-show" type="primary" @click="toggleLeft">{{leftShow ? '收缩' : '展开'}}</el-button>
+      </div>
     </div>
 
 
@@ -55,14 +57,19 @@
         background: `url(${tabOptions[current].pic})`
       }">
         <template v-for="(point, idx) in mapPoints" :key="idx">
-          <div class="point"  v-if="point.x !== '' && point.x >= 0"  :style="{ left: point.left, bottom: point.bottom }" >
+          <div class="point"  v-if="point.x !== '' && point.x >= 0 && zbIsShow[current][idx]"  :style="{ left: point.left, bottom: point.bottom }" >
             <div class="zb-wrap">
-              <div class="index">{{idx + 1}}.</div>
-              <div class="zb">({{point.x}},{{point.y}})</div>
+              <div class="index">{{idx + 1}}</div>
+<!--              <div class="zb">({{point.x}},{{point.y}})</div>-->
             </div>
           </div>
         </template>
 
+      </div>
+      <div class="zb-index">
+        <div class="zb" @click="zbClick(current, idx)" :class="{hidden: !zbIsShow[current][idx]}"  v-for="(point, idx) in mapPoints" :key="idx">
+          <span class="idx">{{idx + 1}}</span><span v-if="point.x && zbIsShow[current][idx]">({{point.x}},{{point.y}})</span>
+        </div>
       </div>
     </div>
   </div>
@@ -99,36 +106,20 @@ const mapPoints = computed(() => {
     let x = tabOptions.value[current.value].x
     let y = tabOptions.value[current.value].y
     return {
-      left: array[0]/x*100 + '%',
-      bottom: array[1]/y*100 + '%',
+      left: (array[0]-3)/x*100 + '%',
+      bottom: (array[1]-3)/y*100 + '%',
       x: array[0],
       y: array[1]
     }
   })
 })
 
+
 const current = ref(0)
-// const tabOptions = ref([
-//   { label: 'AAA', value: 0 },
-//   { label: 'BBB', value: 1 },
-//   { label: 'CCC', value: 2 },
-//   { label: 'DDD', value: 3 },
-//   { label: 'EEE', value: 4 },
-//   { label: 'FFF', value: 5 },
-//   { label: 'GGG', value: 6 },
-//   { label: 'HHH', value: 7 },
-//   { label: 'III', value: 8 },
-//   { label: 'JJJ', value: 9 },
-//   { label: 'KKK', value: 10 },
-//   { label: 'LLL', value: 11 },
-//   { label: 'MMM', value: 12 },
-//   { label: 'NNN', value: 13 },
-//   { label: 'OOO', value: 14 },
-//   { label: 'PPP', value: 15 },
-// ])
+
 
 const tabOptions = ref([
-  { label: '朱紫国', value: 0, width: 836, height: 546, pic: pic1, x: 192, y: 191},
+  { label: '朱紫国', value: 0, width: 836, height: 546, pic: pic1, x: 192, y: 119},
   { label: '傲来国', value: 1, width: 767, height: 537, pic: pic2, x: 223, y: 150},
   { label: '女儿村', value: 2, width: 468, height: 547, pic: pic3, x: 127, y: 143},
   { label: '建邺城', value: 3, width: 828, height: 431, pic: pic4, x: 287, y: 143},
@@ -149,6 +140,11 @@ const tabOptions = ref([
 const zbValue = ref([
     ...Array.from({length: 16}).map(() => Array.from({length: 20}, () => ''))
 ])
+
+const zbIsShow = ref([
+  ...Array.from({length: 16}).map(() => Array.from({length: 20}, () => true))
+])
+
 
 const tabClick = (idx) => {
   current.value = idx
@@ -175,6 +171,15 @@ const clear = () => {
   })
 }
 
+const zbClick = (current, idx) => {
+  zbIsShow.value[current][idx] = !zbIsShow.value[current][idx]
+}
+
+
+const leftShow = ref(true)
+const toggleLeft = () => {
+  leftShow.value = !leftShow.value
+}
 
 onMounted(() => {
   zbValue.value = JSON.parse(window.localStorage.getItem('zbValue') || JSON.stringify([
@@ -187,8 +192,8 @@ onMounted(() => {
 <style lang="stylus" scoped>
 .watu-wrapper
   display: flex
-  align-items: center
-  flex-wrap: wrap
+  //align-items: center
+  flex-wrap: nowrap
   .table
     width: 500px
     border-collapse: collapse
@@ -203,15 +208,23 @@ onMounted(() => {
         //padding: 0 5px
         border-bottom: 1px solid #000
         border-right: 1px solid #000
+  .center-wrap
+    display: flex
+    flex-direction: column
   .button-wrap
     margin: 0 5px 50px
     display: flex
     .button
       width: 100px
       height: 40px
+  .button_toggle-show
+    width: 200px
+    height: 200px
+    margin: 10px 5px
+    font-size: 20px
+    font-weight: bold
   .tabs
     width: 250px
-    height: 300px
     display: flex
     flex-wrap: wrap
     .tab
@@ -227,17 +240,10 @@ onMounted(() => {
         background-color: coral
         color: #fff
   .map-wrap
-    flex: 0 0 900px
-    height: 600px
-    border: 1px solid #000
+    flex: 0 0 1000px
     position: relative
     .map
-      position: absolute
-      margin: auto
-      top: 0
-      left: 0
-      bottom: 0
-      right: 0
+      position: relative
       .point
         position: absolute
         width: 20px
@@ -253,8 +259,32 @@ onMounted(() => {
           display: flex
           align-items: center
           .index
-            font-size: 26px
+            font-size: 28px
             margin-right: 10px
           .zb
-            font-size: 24px
+            font-size: 18px
+            color: #f7ba2a
+    .zb-index
+      display: flex
+      flex-wrap: wrap
+      width: 800px
+      border-left: 1px solid #999
+      .zb
+        padding: 10px 0
+        flex: 0 0 150px
+        display: flex
+        border-bottom: 1px solid #999
+        border-right: 1px solid #999
+        &.hidden
+          background: rgba(0, 0, 0, .5)
+      .idx
+        color: #fff
+        background: red
+        display: block
+        border-radius: 100%
+        width: 20px
+        height: 20px
+        text-align: center
+        line-height: 20px
+        margin: 0 10px
 </style>
